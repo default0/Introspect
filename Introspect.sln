@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Introspect", "Introspect\Introspect.csproj", "{B672B0F8-BA7F-4E57-AF39-A32CC7D80C01}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Introspect.Test", "Introspect.Test\Introspect.Test.csproj", "{3CCEA5B3-3D38-4B70-8EBC-E765349470BA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Introspect.Analyzer", "Introspect.Analyzer\Introspect.Analyzer\Introspect.Analyzer.csproj", "{2F637FD3-993F-4855-ADFA-3F1C2BB377E4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Introspect.Analyzer.Test", "Introspect.Analyzer\Introspect.Analyzer.Test\Introspect.Analyzer.Test.csproj", "{9D532274-9587-4AFE-9BF1-823A2D367959}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Introspect.Analyzer.Vsix", "Introspect.Analyzer\Introspect.Analyzer.Vsix\Introspect.Analyzer.Vsix.csproj", "{8D85D1A2-9D39-4C69-A735-570E91BE7579}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{821018F1-0902-45B9-9B10-3AD824AC0E6F}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		Rebracer.xml = Rebracer.xml
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B672B0F8-BA7F-4E57-AF39-A32CC7D80C01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B672B0F8-BA7F-4E57-AF39-A32CC7D80C01}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B672B0F8-BA7F-4E57-AF39-A32CC7D80C01}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B672B0F8-BA7F-4E57-AF39-A32CC7D80C01}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3CCEA5B3-3D38-4B70-8EBC-E765349470BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3CCEA5B3-3D38-4B70-8EBC-E765349470BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3CCEA5B3-3D38-4B70-8EBC-E765349470BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3CCEA5B3-3D38-4B70-8EBC-E765349470BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2F637FD3-993F-4855-ADFA-3F1C2BB377E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2F637FD3-993F-4855-ADFA-3F1C2BB377E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2F637FD3-993F-4855-ADFA-3F1C2BB377E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2F637FD3-993F-4855-ADFA-3F1C2BB377E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D532274-9587-4AFE-9BF1-823A2D367959}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D532274-9587-4AFE-9BF1-823A2D367959}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D532274-9587-4AFE-9BF1-823A2D367959}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D532274-9587-4AFE-9BF1-823A2D367959}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8D85D1A2-9D39-4C69-A735-570E91BE7579}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D85D1A2-9D39-4C69-A735-570E91BE7579}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D85D1A2-9D39-4C69-A735-570E91BE7579}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D85D1A2-9D39-4C69-A735-570E91BE7579}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

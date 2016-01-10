@@ -6,17 +6,12 @@ using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StaticInterface
+namespace Introspect
 {
 	/// <summary>
-	/// Marks an interface as a static interface.
+	/// Allows to use all public static methods required by TInterface on TImpl the provided interface must be marked with the <see cref="StaticAttribute"/>. The provided implementation type only needs to expose public static methods matching the interface, it does NOT need to explicitly implement it.
 	/// </summary>
-	[AttributeUsage(AttributeTargets.Interface)]
-	public class StaticAttribute : Attribute { }
-	/// <summary>
-	/// Allows to use all public static methods required by <see cref="TInterface"/> on <see cref="TImpl"/>. The provided interface must be marked with the <see cref="StaticAttribute"/>.
-	/// </summary>
-	public class StaticInterface<TInterface, TImpl>
+	public static class StaticDuckInterface<TInterface, TImpl>
 		where TInterface : class
 	{
 		private static class Vars
@@ -26,21 +21,15 @@ namespace StaticInterface
 				AssemblyBuilderAccess.Run
 			);
 			public static ModuleBuilder ModuleBuilder = AssemblyBuilder.DefineDynamicModule("MainModule");
-
-			static Vars()
-			{
-				Console.WriteLine("Vars cctor");
-			}
 		}
 
 		/// <summary>
-		/// Provides access to the public static method of <see cref="TImpl"/>.
+		/// Provides access to the public static methods of TImpl.
 		/// </summary>
-		public static TInterface Instance { get; private set; }
+		public static TInterface Impl { get; private set; }
 
-		static StaticInterface()
+		static StaticDuckInterface()
 		{
-			Console.WriteLine("StaticInterface cctor");
 			if (!typeof(TInterface).IsInterface)
 				throw new Exception($"The provided type {typeof(TInterface).FullName} is not an interface.");
 			if (typeof(TInterface).GetCustomAttribute<StaticAttribute>() == null)
@@ -61,38 +50,10 @@ namespace StaticInterface
 			foreach(MethodInfo method in typeof(TInterface).GetMethods())
 			{
 				Type[] methodParamTypes = method.GetParameters().Select(x => x.ParameterType).ToArray();
-				MethodInfo targetMethod = null;
-				MethodInfo[] candidateMethods = typeof(TImpl).GetMethods(BindingFlags.Public | BindingFlags.Static);
-				foreach(MethodInfo candidate in candidateMethods)
-				{
-					if (candidate.Name != method.Name)
-						continue;
-					if (candidate.ReturnType != method.ReturnType)
-						continue;
-
-					ParameterInfo[] candidateParams = candidate.GetParameters();
-					if (candidateParams.Length != methodParamTypes.Length)
-						continue;
-
-					bool compatibleTypes = true;
-					for(int i = 0; i < methodParamTypes.Length; ++i)
-					{
-						if(methodParamTypes[i] != candidateParams[i].ParameterType)
-						{
-							compatibleTypes = false;
-							break;
-						}
-					}
-					if (!compatibleTypes)
-						continue;
-
-					targetMethod = candidate;
-					break;
-				}
+				MethodInfo targetMethod = Introspecter.GetImplementingMethod(method, typeof(TImpl), staticImplementation: true);
 				if (targetMethod == null)
 					throw new Exception($"Could not find required public static method \"{method.Name}({string.Join(", ", methodParamTypes.Select(x => x.FullName).ToArray())})\" on implementation type \"{typeof(TImpl).FullName}\" of interface \"{typeof(TInterface).FullName}\"");
-
-				// public hidebysig newslot virtual final
+				
 				MethodBuilder methodBuilder = tb.DefineMethod(
 					method.Name,
 					MethodAttributes.Public |
@@ -103,6 +64,18 @@ namespace StaticInterface
 					method.ReturnType,
 					methodParamTypes
 				);
+				GenericTypeParameterBuilder[] genericParamBuilders = null;
+				if (method.IsGenericMethodDefinition)
+				{
+					var genericParams = method.GetGenericArguments();
+					genericParamBuilders = methodBuilder.DefineGenericParameters(genericParams.Select(x => x.Name).ToArray());
+					for (int i = 0; i < genericParamBuilders.Length; ++i)
+					{
+						genericParamBuilders[i].SetGenericParameterAttributes(genericParams[i].GenericParameterAttributes);
+						genericParamBuilders[i].SetInterfaceConstraints(genericParams[i].GetInterfaces());
+						genericParamBuilders[i].SetBaseTypeConstraint(genericParams[i].BaseType);
+					}
+				}
 
 				ILGenerator ilGen = methodBuilder.GetILGenerator();
 				switch (methodParamTypes.Length)
@@ -110,25 +83,18 @@ namespace StaticInterface
 					case 0:
 						break;
 					case 1:
-						ilGen.Emit(OpCodes.Ldarg_0);
-						break;
-					case 2:
-						ilGen.Emit(OpCodes.Ldarg_0);
 						ilGen.Emit(OpCodes.Ldarg_1);
 						break;
-					case 3:
-						ilGen.Emit(OpCodes.Ldarg_0);
+					case 2:
 						ilGen.Emit(OpCodes.Ldarg_1);
 						ilGen.Emit(OpCodes.Ldarg_2);
 						break;
-					case 4:
-						ilGen.Emit(OpCodes.Ldarg_0);
+					case 3:
 						ilGen.Emit(OpCodes.Ldarg_1);
 						ilGen.Emit(OpCodes.Ldarg_2);
 						ilGen.Emit(OpCodes.Ldarg_3);
 						break;
 					default:
-						ilGen.Emit(OpCodes.Ldarg_0);
 						ilGen.Emit(OpCodes.Ldarg_1);
 						ilGen.Emit(OpCodes.Ldarg_2);
 						ilGen.Emit(OpCodes.Ldarg_3);
@@ -140,10 +106,12 @@ namespace StaticInterface
 							ilGen.Emit(OpCodes.Ldarg, (byte)numParams);
 						break;
 				}
+				if (targetMethod.IsGenericMethodDefinition)
+					targetMethod.MakeGenericMethod(genericParamBuilders);
 				ilGen.Emit(OpCodes.Call, targetMethod);
 				ilGen.Emit(OpCodes.Ret);
 			}
-			Instance = (TInterface)Activator.CreateInstance(tb.CreateType());
+			Impl = (TInterface)Activator.CreateInstance(tb.CreateType());
 		}
 	}
 }
