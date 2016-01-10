@@ -95,6 +95,8 @@ This is useful if some of the objects in an enumeration need special treatment t
 In this case, a MakeNoise() function in the Animal class would be a bad abstraction, since Fish do not make noises and thus
 should not need to implement this function.
 
+### IsImplementation
+
 ```csharp
 public static bool IsImplementation<TImpl, TInterface>()
 ```
@@ -127,3 +129,153 @@ public static void Main()
 	Console.WriteLine(Introspecter.IsDuck<FooDuck, IFoo>()); // true, contains all methods required by IFoo
 }
 ```
+
+## StaticInterface
+
+The `StaticInterface` class is useful if you want to require that certain methods
+are present on a type (ie declared as `public static`) instead of on an instance
+of that type.
+
+To declare a static interface, use the `[Static]` attribute.
+
+#### Example
+
+```csharp
+public interface INonStaticInterface { }
+
+[Static]
+public interface IStaticInterface { }
+```
+
+If an interface is not marked with the `[Static]` attribute it cannot be used
+by the `StaticInterface` class.
+
+In order to implement a *static interface*, you have to implement the `IStatic<T>`
+interface.
+
+#### Example
+
+```csharp
+[Static]
+public interface IStaticInterface
+{
+	void Bar();
+}
+
+public class WrongImplementation : IStaticInterface
+{
+}
+
+public class CorrectImplementation : IStatic<IStaticInterface>
+{
+	public static void Bar() => Console.WriteLine("Bar!");
+}
+```
+
+The reason for that is that directly inheriting `IStaticInterface` would make the compiler
+complain if you did not provide non-static implementations for methods of the interface.
+
+Static interfaces _cannot contain indexers_. This is because there is no way to declare
+a static indexer in C#.
+
+This means that the following is an error:
+```csharp
+[Static]
+public interface IError
+{
+	int this[int index] { get; }
+}
+```
+
+Aside from this exception, static interfaces work just like normal interfaces, only the
+implementing methods have to be `public static`.
+
+In order to call methods of a static interface, you have to use the `StaticInterface` class.
+
+#### Example
+
+```csharp
+[Static]
+public interface IFoo
+{
+	void Bar();
+}
+
+public class FooImpl : IStatic<IFoo>
+{
+	public static void Bar() => Console.WriteLine("Bar!");
+}
+public class OtherFooImpl : IStatic<IFoo>
+{
+	public static void Bar() => console.WriteLine("Other Bar!");
+}
+
+public static void Use<T>() where T : IStatic<IFoo>
+{
+	StaticInterface<T, IFoo>.Impl.Bar(); // Use<FooImpl> will print "Bar!", Use<OtherFooImpl> will print "Other Bar!"
+}
+```
+
+Note the `Impl` property has to be used to invoke methods implemented by the interface.
+
+## StaticDuckInterface
+
+Since C# does not natively provide a way to declare and use static interfaces, if you use 3rd party
+libraries whose source you do not control, you sometimes encounter several types that
+share a conceptual static interface, but this interface is not declared explicitly for lack of
+being able to express this concept in the language.
+
+For this purpose, `StaticDuckInterface` exists. `StaticDuckInterface` does not require that
+an implementation explicitly implement `IStatic<T>`, but only requires that the
+implementation has `public static` methods matching all the methods defined in the
+interface.
+
+A popular example of this is the `Parse(string)` method defined on most primitive types
+such as `int`, `long`, etc.
+
+Using `StaticDuckInterface` you can have a generic method that parses these types.
+
+#### Example
+
+```csharp
+[Static]
+public interface IParseable<T>
+{
+	T Parse(string str);
+}
+
+public static T Parse<T>(string str)
+{
+	if(!Introspecter.IsDuck<T, IParseable<T>>)
+		throw new Exception($"Type {typeof(T).FullName} cannot be parsed because it contains no public static Parse(string) method returning a {typeof(T).FullName}");
+	
+	return StaticDuckInterface<IParseable<T>, T>.Impl.Parse(str);
+}
+```
+
+## DuckInterface
+
+`DuckInterface` does the same as `StaticDuckInterface` conceptually, but it works
+on objects instead of types and cannot use static interfaces.
+
+#### Example
+
+```csharp
+public interface ITypeCoded
+{
+	TypeCode GetTypeCode();
+}
+public static TypeCode GetTypeCode<T>(T obj)
+{
+	if(!Introspecter.IsDuck<ITypeCoded>(obj))
+		throw new Exception($"Cannot get type code of Type {typeof(T).FullName} because it contains no public GetTypeCode() method returning a TypeCode.");
+	
+	return DuckInterface<ITypeCoded>.Duck(obj).GetTypeCode();
+}
+```
+
+This is much less useful than the `StaticDuckInterface` since often there are very viable alternatives
+such as simply `is` checking and casting, however it can be useful in certain circumstances where
+a type lacks explicit specification of implemented interfaces or if you want to check only for a subset
+of an implemented interface (such as in the above example, where instead of requiring a full blown
+`IConvertible` interface we just want to check if the object has the `GetTypeCode()` method).
