@@ -7,6 +7,15 @@ Introspect adds 4 main classes for implementing design by Introspection:
 - StaticDuckInterface
 - DuckInterface
 
+## How to Use
+
+Simply install via NuGet
+```
+Install-Package Introspect
+```
+
+[NuGet Project Page](https://www.nuget.org/packages/Introspect/1.0.5853.28048)
+
 ## Introspecter
 
 The Introspecter class is used to determine capabilities of generic types or objects.
