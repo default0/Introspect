@@ -37,19 +37,6 @@ namespace Introspect.Analyzer.Test
 			};
 
 			VerifyCSharpDiagnostic(test, expected);
-
-			/*var fixtest = @"
-	using StaticInterface;
-	
-	namespace Test
-	{
-		[Static]
-		public interface IFoo { }
-		public interface IRegular { }
-
-		public class Foo : IStatic<IFoo> { }
-	}";*/
-			//VerifyCSharpFix(test, fixtest);
 		}
 
 		[TestMethod]
@@ -247,11 +234,6 @@ namespace Introspect.Analyzer.Test
 			expected3.Message = String.Format("'{0}' does not implement static interface member {1}. The implementing member must be public and static.", "FooBadImpl", "Test.IFoo.Prop");
 
 			VerifyCSharpDiagnostic(test, expected, expected2, expected3);
-		}
-
-		protected override CodeFixProvider GetCSharpCodeFixProvider()
-		{
-			return new StaticInterfaceAnalyzerCodeFixProvider();
 		}
 
 		protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()

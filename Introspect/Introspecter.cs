@@ -62,6 +62,7 @@ namespace Introspect
 		/// True if the provided implementation contains all methods defined in the provided interface type. The provided interface type may not be a static interface.
 		/// </summary>
 		/// <param name="impl">The object that must implement all methods of the interface type.</param>
+		/// <typeparam name="TImpl">The base type of the implementation.</typeparam>
 		/// <typeparam name="TInterface">The interface type that defines the methods that must be implemented.</typeparam>
 		/// <returns>True if the implementation implements all methods of the interface type, false otherwise.</returns>
 		public static bool IsDuck<TInterface, TImpl>(TImpl impl)

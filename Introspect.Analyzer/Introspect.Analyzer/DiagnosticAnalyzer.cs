@@ -282,7 +282,7 @@ namespace Introspect.Analyzer
 				return false;
 
 			return symbol.GetAttributes().Any(
-				x => x.AttributeClass.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == "global::StaticInterface.StaticAttribute"
+				x => x.AttributeClass.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == "global::Introspect.StaticAttribute"
 			);
 		}
 		private static bool isStaticInterfaceImpl(INamedTypeSymbol symbol)
@@ -298,7 +298,7 @@ namespace Introspect.Analyzer
 
 			return symbol.ConstructedFrom.ToDisplayString(
 				SymbolDisplayFormat.FullyQualifiedFormat
-			) == "global::StaticInterface.IStatic<T>";
+			) == "global::Introspect.IStatic<T>";
 		}
 	}
 }
