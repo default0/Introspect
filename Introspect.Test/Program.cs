@@ -45,9 +45,16 @@ namespace Introspect.Test
 	}
 	public class MyTC
 	{
+	}
+	public class MySubTC
+	{
 		public TypeCode GetTypeCode()
 		{
-			return TypeCode.Object;
+			Random rng = new Random();
+			int tcVal = 0;
+			while (rng.NextDouble() < 0.9)
+				++tcVal;
+			return (TypeCode)tcVal;
 		}
 	}
 	public class Program
@@ -86,7 +93,7 @@ namespace Introspect.Test
 			{
 				sw.Restart();
 				for (int i = 0; i < iterations; ++i)
-					tc = GetTypeCode(new MyTC());
+					tc = GetTypeCode(new MySubTC());
 				sw.Stop();
 
 				if (sw.Elapsed.TotalMilliseconds < min1)
@@ -101,7 +108,7 @@ namespace Introspect.Test
 			{
 				sw.Restart();
 				for (int i = 0; i < iterations; ++i)
-					tc = new MyTC().GetTypeCode();
+					tc = new MySubTC().GetTypeCode();
 				sw.Stop();
 
 				if (sw.Elapsed.TotalMilliseconds < min2)
@@ -123,7 +130,7 @@ namespace Introspect.Test
 		
 		public static TypeCode GetTypeCode<T>(T typecoded)
 		{
-			return DuckInterface<ITypeCoded, T>.Duck(typecoded).GetTypeCode();
+			return DuckInterface<ITypeCoded>.Duck(typecoded).GetTypeCode();
 		}
 		public static bool TryParse<T>(string str, out T result)
 		{

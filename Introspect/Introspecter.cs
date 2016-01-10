@@ -21,6 +21,11 @@ namespace Introspect
 			public static bool? result;
 		}
 
+		private static object[] empty = new object[0];
+
+		private static MethodInfo isDuckImplMethod = typeof(Introspecter).GetMethod(nameof(isDuckImpl), BindingFlags.NonPublic | BindingFlags.Static);
+		private static Dictionary<Tuple<Type, Type>, bool> isDuckCache = new Dictionary<Tuple<Type, Type>, bool>();
+
 		/// <summary>
 		/// True if the provided implementation type implements the provided interface type explicitly. If the provided interface type is a static interface, this method will automatically check whether the implementation type implements the interface statically.
 		/// </summary>
@@ -28,6 +33,11 @@ namespace Introspect
 		/// <typeparam name="TInterface">The interface type that must be implemented.</typeparam>
 		/// <returns>True if the implementation type explicitly implements the interface type, false otherwise.</returns>
 		public static bool IsImplementation<TImpl, TInterface>()
+			where TInterface : class
+		{
+			return isImplementationImpl<TImpl, TInterface>();
+		}
+		private static bool isImplementationImpl<TImpl, TInterface>()
 			where TInterface : class
 		{
 			if (ImplementationMemoizer<TImpl, TInterface>.result.HasValue)
@@ -47,7 +57,32 @@ namespace Introspect
 			ImplementationMemoizer<TImpl, TInterface>.result = r;
 			return r;
 		}
-		
+
+		/// <summary>
+		/// True if the provided implementation contains all methods defined in the provided interface type. The provided interface type may not be a static interface.
+		/// </summary>
+		/// <param name="impl">The object that must implement all methods of the interface type.</param>
+		/// <typeparam name="TInterface">The interface type that defines the methods that must be implemented.</typeparam>
+		/// <returns>True if the implementation implements all methods of the interface type, false otherwise.</returns>
+		public static bool IsDuck<TInterface, TImpl>(TImpl impl)
+			where TInterface : class
+		{
+			// do not use typeof(TImpl) directly here, since impl may be a subclass
+			// of TImpl.
+			bool result;
+			var tuple = new Tuple<Type, Type>(impl.GetType(), typeof(TInterface));
+			if (isDuckCache.TryGetValue(tuple, out result))
+				return result;
+
+			if (impl == null)
+				return false;
+			if (typeof(TInterface).GetCustomAttribute<StaticAttribute>() != null)
+				throw new Exception($"You cannot check for the implementation of a static interface on an object. Use the IsDuck overload that takes two type parameters instead.");
+
+			result = (bool)isDuckImplMethod.MakeGenericMethod(impl.GetType(), typeof(TInterface)).Invoke(null, empty);
+			isDuckCache[tuple] = result;
+			return result;
+		}
 		/// <summary>
 		/// True if the provided implementation type contains all methods defined in the provided interface type. If the provided interface type is a static interface, this method will automatically check whether the implementation type contains all specified public static methods.
 		/// </summary>
@@ -55,6 +90,11 @@ namespace Introspect
 		/// <typeparam name="TInterface">The interface type that defines the methods that must be implemented.</typeparam>
 		/// <returns>True if the implementation type implements all methods of the interface type, false otherwise.</returns>
 		public static bool IsDuck<TImpl, TInterface>()
+			where TInterface : class
+		{
+			return isDuckImpl<TImpl, TInterface>();
+		}
+		private static bool isDuckImpl<TImpl, TInterface>()
 			where TInterface : class
 		{
 			if (DuckMemoizer<TImpl, TInterface>.result.HasValue)

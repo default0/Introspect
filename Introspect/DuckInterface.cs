@@ -9,6 +9,53 @@ using System.Threading.Tasks;
 namespace Introspect
 {
 	/// <summary>
+	/// Allows to use all public methods required by TInterface if provided a suitable implementing object. The provided implementation only needs to expose public methods matching the interface, it does NOT need to explicitly implement it.
+	/// </summary>
+	public static class DuckInterface<TInterface>
+		where TInterface : class
+	{
+		static DuckInterface()
+		{
+			if (!typeof(TInterface).IsInterface)
+				throw new Exception($"The provided type {typeof(TInterface).FullName} is not an interface.");
+			if (typeof(TInterface).GetCustomAttribute<StaticAttribute>() != null)
+				throw new Exception($"The provided interface {typeof(TInterface).FullName} is marked with the {typeof(StaticAttribute).FullName} attribute. Duck typing does not work with static interfaces.");
+		}
+
+		private static Dictionary<Type, Func<object, TInterface>> duckCache = new Dictionary<Type, Func<object, TInterface>>();
+		/// <summary>
+		/// Creates an instance of a wrapper that wraps impl and forwards calls of interface methods to calls to impl.
+		/// </summary>
+		/// <param name="impl">The implementation that should be wrapped in an interface.</param>
+		/// <returns>An instance of a wrapper that wraps impl and forwards calls of interface methods to calls to impl.</returns>
+		public static TInterface Duck<TImpl>(TImpl impl)
+		{
+			if (impl == null)
+				throw new ArgumentNullException(nameof(impl));
+
+			var type = impl.GetType();
+			Func<object, TInterface> del;
+			if (duckCache.TryGetValue(type, out del))
+				return del(impl);
+
+			var makeDuckMethod = typeof(DuckInterface<,>)
+				.MakeGenericType(typeof(TInterface), type)
+				.GetMethod(nameof(DuckInterface<TInterface, TImpl>.Duck), BindingFlags.Public | BindingFlags.Static);
+
+
+			DynamicMethod method = new DynamicMethod(Guid.NewGuid().ToString("N"), typeof(TInterface), new[] { typeof(object) });
+			var ilGen = method.GetILGenerator();
+			ilGen.Emit(OpCodes.Ldarg_0);
+			ilGen.Emit(OpCodes.Castclass, impl.GetType());
+			ilGen.Emit(OpCodes.Call, makeDuckMethod);
+			ilGen.Emit(OpCodes.Ret);
+
+			del = (Func<object, TInterface>)method.CreateDelegate(typeof(Func<object, TInterface>));
+			duckCache[type] = del;
+			return del(impl);
+		}
+	}
+	/// <summary>
 	/// Allows to use all public methods required by TInterface on TImpl. The provided implementation type only needs to expose public methods matching the interface, it does NOT need to explicitly implement it.
 	/// </summary>
 	public static class DuckInterface<TInterface, TImpl>
@@ -17,7 +64,7 @@ namespace Introspect
 		private static class Vars
 		{
 			public static AssemblyBuilder AssemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(
-				new AssemblyName("StaticInterfaces"),
+				new AssemblyName("StaticIntefaces"),
 				AssemblyBuilderAccess.Run
 			);
 			public static ModuleBuilder ModuleBuilder = AssemblyBuilder.DefineDynamicModule("MainModule");
