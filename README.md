@@ -255,7 +255,7 @@ public interface IParseable<T>
 
 public static T Parse<T>(string str)
 {
-	if(!Introspecter.IsDuck<T, IParseable<T>>)
+	if(!Introspecter.IsDuck<T, IParseable<T>>())
 		throw new Exception($"Type {typeof(T).FullName} cannot be parsed because it contains no public static Parse(string) method returning a {typeof(T).FullName}");
 	
 	return StaticDuckInterface<IParseable<T>, T>.Impl.Parse(str);
