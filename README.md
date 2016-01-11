@@ -125,11 +125,11 @@ public interface IFoo
 }
 public class Foo : IStatic<IFoo>
 {
-	public int Bar() => 42;
+	public static int Bar() => 42;
 }
 public class FooDuck
 {
-	public int Bar() => 1337;
+	public static int Bar() => 1337;
 }
 public static void Main()
 {
