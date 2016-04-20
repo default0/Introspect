@@ -94,7 +94,7 @@ public void ProcessAnimals(Animal[] animals)
 	{
 		if(Introspecter.IsDuck<IDuck>(animal))
 			DuckInterface<IDuck>.Duck(animal).Quack();
-		
+
 		animal.Age();
 	}
 }
@@ -221,11 +221,38 @@ public class OtherFooImpl : IStatic<IFoo>
 
 public static void Use<T>() where T : IStatic<IFoo>
 {
-	StaticInterface<T, IFoo>.Impl.Bar(); // Use<FooImpl> will print "Bar!", Use<OtherFooImpl> will print "Other Bar!"
+	StaticInterface<IFoo, T>.Impl.Bar(); // Use<FooImpl> will print "Bar!", Use<OtherFooImpl> will print "Other Bar!"
 }
 ```
 
 Note the `Impl` property has to be used to invoke methods implemented by the interface.
+
+If you want to use inheritance with a *static interface*, "overridden" methods should be
+declared as `public static new`:
+
+```csharp
+[Static]
+public interface IFoo
+{
+	void Bar();
+	void Baz();
+}
+public class BaseImpl : IStatic<IFoo>
+{
+	public static void Bar() => Console.WriteLine("BaseImpl.Bar!");
+	public static void Baz() => Console.WriteLine("BaseImpl.Baz!");
+}
+public class SubImpl : BaseImpl
+{
+	public static new void Bar() => Console.WriteLine("SubImpl.Bar!");
+}
+
+void Main()
+{
+	StaticInterface<IFoo, SubImpl>.Impl.Bar(); // prints "SubImpl.Bar!"
+	StaticInterface<IFoo, SubImpl>.Impl.Baz(); // prints "BaseImpl.Baz!"
+}
+```
 
 ## StaticDuckInterface
 
@@ -257,8 +284,8 @@ public static T Parse<T>(string str)
 {
 	if(!Introspecter.IsDuck<T, IParseable<T>>())
 		throw new Exception($"Type {typeof(T).FullName} cannot be parsed because it contains no public static Parse(string) method returning a {typeof(T).FullName}");
-	
-	return StaticDuckInterface<IParseable<T>, T>.Impl.Parse(str);
+
+	return StaticDuckInterface<T, IParseable<T>>.Impl.Parse(str);
 }
 ```
 
@@ -278,7 +305,7 @@ public static TypeCode GetTypeCode<T>(T obj)
 {
 	if(!Introspecter.IsDuck<ITypeCoded>(obj))
 		throw new Exception($"Cannot get type code of Type {typeof(T).FullName} because it contains no public GetTypeCode() method returning a TypeCode.");
-	
+
 	return DuckInterface<ITypeCoded>.Duck(obj).GetTypeCode();
 }
 ```
