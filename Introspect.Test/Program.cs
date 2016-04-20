@@ -182,6 +182,7 @@ namespace Introspect.Test
 		{
 			StaticInterface<IInheritanceTest, T>.Impl.M();
 			StaticInterface<IInheritanceTest, T>.Impl.N();
+			
 		}
 
 		private static void Instance_X(object sender, EventArgs e)

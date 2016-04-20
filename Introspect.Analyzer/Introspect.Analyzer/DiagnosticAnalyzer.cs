@@ -210,20 +210,8 @@ namespace Introspect.Analyzer
 					return false;
 			}
 
-			if (implementation.ReturnType.TypeKind != implemented.ReturnType.TypeKind)
+			if(!checkMatchingParameterTypes(implementation.ReturnType, implemented.ReturnType))
 				return false;
-			if (implementation.ReturnType.TypeKind == TypeKind.TypeParameter)
-			{
-				var implementationTParam = (ITypeParameterSymbol)implementation.ReturnType;
-				var implementedTParam = (ITypeParameterSymbol)implemented.ReturnType;
-				if (implementationTParam.Ordinal != implementedTParam.Ordinal)
-					return false;
-			}
-			else
-			{
-				if (!implementation.ReturnType.Equals(implemented.ReturnType))
-					return false;
-			}
 
 			if (implementation.Parameters.Length != implemented.Parameters.Length)
 				return false;
