@@ -233,24 +233,55 @@ namespace Introspect.Analyzer
 				IParameterSymbol implementationParam = implementation.Parameters[i];
 				IParameterSymbol implementedParam = implemented.Parameters[i];
 
-				if (implementationParam.Type.TypeKind != implementedParam.Type.TypeKind)
+				if (!checkMatchingParameterTypes(implementationParam.Type, implementedParam.Type))
 					return false;
-				if (implementationParam.Type.TypeKind == TypeKind.TypeParameter)
-				{
-					var implementationTParam = (ITypeParameterSymbol)implementationParam.Type;
-					var implementedTParam = (ITypeParameterSymbol)implementedParam.Type;
-					if (implementationTParam.Ordinal != implementedTParam.Ordinal)
-						return false;
-				}
-				else
-				{
-					if (!implementationParam.Type.Equals(implementedParam.Type))
-						return false;
-				}
+
 				if (implementationParam.RefKind != implementedParam.RefKind)
 					return false;
 			}
 
+			return true;
+		}
+		private static bool checkMatchingParameterTypes(ITypeSymbol implementationParamType, ITypeSymbol implementedParamType)
+		{
+			if (implementationParamType.TypeKind != implementedParamType.TypeKind)
+				return false;
+			if (implementationParamType.TypeKind == TypeKind.TypeParameter)
+			{
+				var implementationTParam = (ITypeParameterSymbol)implementationParamType;
+				var implementedTParam = (ITypeParameterSymbol)implementedParamType;
+
+				if (implementationTParam.DeclaringMethod == null && implementedTParam.DeclaringMethod == null)
+				{
+					if (!implementationTParam.Equals(implementedTParam))
+						return false;
+				}
+				else if (implementationTParam.DeclaringMethod != null && implementedTParam.DeclaringMethod != null)
+				{
+					// do nothing so we fall through and return true; do not want to obscure the cascade of "return false" in this method
+					// with an arbitrary "return true" in the middle here, which is why I'm leaving this empty.
+				}
+				else
+					return false;
+			}
+			else
+			{
+				var namedImplementationParamType = implementationParamType as INamedTypeSymbol;
+				var namedImplementedParamType = implementedParamType as INamedTypeSymbol;
+				if (namedImplementationParamType == null || namedImplementedParamType == null)
+					return false;
+				if (namedImplementationParamType.Arity != namedImplementedParamType.Arity)
+					return false;
+				
+				for(int i = 0; i < namedImplementationParamType.Arity; ++i)
+				{
+					if (!checkMatchingParameterTypes(namedImplementationParamType.TypeArguments[0], namedImplementedParamType.TypeArguments[0]))
+						return false;
+				}
+
+				if (!implementationParamType.OriginalDefinition.Equals(implementedParamType.OriginalDefinition))
+					return false;
+			}
 			return true;
 		}
 		private static bool checkMatchingTypeParameters(ITypeParameterSymbol implementationTParam, ITypeParameterSymbol implementedTParam)
