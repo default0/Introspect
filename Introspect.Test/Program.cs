@@ -25,6 +25,32 @@ namespace Introspect.Test
 		bool TryParse(string str, out T result);
 	}
 
+	[Static]
+	public interface IInheritanceTest
+	{
+		void M();
+		void N();
+	}
+
+	public class InheritanceBase : IStatic<IInheritanceTest>
+	{
+		public static void M()
+		{
+			Console.WriteLine("InheritanceBase.M was called.");
+		}
+		public static void N()
+		{
+			Console.WriteLine("InheritanceBase.N was called.");
+		}
+	}
+	public class InheritanceSub : InheritanceBase
+	{
+		public static new void M()
+		{
+			Console.WriteLine("InheritanceSub.M was called.");
+		}
+	}
+
 	public class FooStatic : IStatic<IFoo>
 	{
 		public static int Prop => 5;
@@ -82,6 +108,14 @@ namespace Introspect.Test
 
 		public static void Main(string[] args)
 		{
+			// Expected Output:
+			// InheritanceBase.M was called
+			// InheritanceBase.N was called
+			// InheritanceSub.M was called
+			// InheritanceBase.N was called
+			TestInheritance<InheritanceBase>();
+			TestInheritance<InheritanceSub>();
+
 			const int epochs = 100;
 			const int iterations = 100000;
 			Stopwatch sw = Stopwatch.StartNew();
@@ -142,6 +176,12 @@ namespace Introspect.Test
 		public static bool TryParseUnchecked<T>(string str, out T result)
 		{
 			return StaticDuckInterface<IParseable<T>, T>.Impl.TryParse(str, out result);
+		}
+
+		public static void TestInheritance<T>() where T : IStatic<IInheritanceTest>
+		{
+			StaticInterface<IInheritanceTest, T>.Impl.M();
+			StaticInterface<IInheritanceTest, T>.Impl.N();
 		}
 
 		private static void Instance_X(object sender, EventArgs e)

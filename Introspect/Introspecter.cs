@@ -147,11 +147,12 @@ namespace Introspect
 		internal static MethodInfo GetImplementingMethod(MethodInfo interfaceMethod, Type implementingType, bool staticImplementation)
 		{
 			Type[] methodParamTypes = interfaceMethod.GetParameters().Select(x => x.ParameterType).ToArray();
-			MethodInfo targetMethod = null;
+			List<MethodInfo> targetMethods = new List<MethodInfo>();
 			MethodInfo[] candidateMethods = implementingType.GetMethods(
-				staticImplementation ? 
+				(staticImplementation ? 
 					BindingFlags.Public | BindingFlags.Static :
-					BindingFlags.Public | BindingFlags.Instance
+					BindingFlags.Public | BindingFlags.Instance) |
+				BindingFlags.FlattenHierarchy
 			);
 			foreach (MethodInfo candidate in candidateMethods)
 			{
@@ -199,10 +200,23 @@ namespace Introspect
 				if (!compatibleTypes)
 					continue;
 
-				targetMethod = candidate;
-				break;
+				if (candidate.DeclaringType == implementingType) // perfect inheritance score - we can just return him, there will be no better candidates.
+					return candidate;
+
+				targetMethods.Add(candidate);
 			}
-			return targetMethod;
+			var declaringTypes = targetMethods.ToDictionary(x => x.DeclaringType);
+			// we can start from the base type because if we would have had a candidate on the implementingType itself we would have already returned it.
+			var curType = implementingType.BaseType;
+			while(curType != null)
+			{
+				MethodInfo bestCandidate;
+				if (declaringTypes.TryGetValue(curType, out bestCandidate))
+					return bestCandidate;
+
+				curType = curType.BaseType;
+			}
+			throw new Exception($"Could not find a suitable method to implement the interface method {interfaceMethod.ToString()} of interface {interfaceMethod.DeclaringType.FullName}.");
 		}
 	}
 }
