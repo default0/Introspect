@@ -45,15 +45,15 @@ namespace Introspect
 				TypeAttributes.BeforeFieldInit |
 				TypeAttributes.AutoLayout,
 				null,
-				new [] { typeof(TInterface) }
+				new[] { typeof(TInterface) }
 			);
-			foreach(MethodInfo method in typeof(TInterface).GetMethods())
+			foreach (MethodInfo method in typeof(TInterface).GetMethods())
 			{
 				Type[] methodParamTypes = method.GetParameters().Select(x => x.ParameterType).ToArray();
 				MethodInfo targetMethod = Introspecter.GetImplementingMethod(method, typeof(TImpl), staticImplementation: true);
 				if (targetMethod == null)
 					throw new Exception($"Could not find required public static method \"{method.Name}({string.Join(", ", methodParamTypes.Select(x => x.FullName).ToArray())})\" on implementation type \"{typeof(TImpl).FullName}\" of interface \"{typeof(TInterface).FullName}\"");
-				
+
 				MethodBuilder methodBuilder = tb.DefineMethod(
 					method.Name,
 					MethodAttributes.Public |
@@ -72,8 +72,12 @@ namespace Introspect
 					for (int i = 0; i < genericParamBuilders.Length; ++i)
 					{
 						genericParamBuilders[i].SetGenericParameterAttributes(genericParams[i].GenericParameterAttributes);
-						genericParamBuilders[i].SetInterfaceConstraints(genericParams[i].GetInterfaces());
-						genericParamBuilders[i].SetBaseTypeConstraint(genericParams[i].BaseType);
+
+						var baseType = genericParams[i].GetGenericParameterConstraints().SingleOrDefault(x => x.IsClass);
+						if (baseType != null)
+							genericParamBuilders[i].SetBaseTypeConstraint(genericParams[i].BaseType);
+
+						genericParamBuilders[i].SetInterfaceConstraints(genericParams[i].GetGenericParameterConstraints().Where(x => !x.IsClass).ToArray());
 					}
 				}
 

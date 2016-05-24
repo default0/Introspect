@@ -72,7 +72,7 @@ namespace Introspect
 
 		private static Type implType;
 		private static Func<TImpl, TInterface> factory;
-		
+
 		static DuckInterface()
 		{
 			if (!typeof(TInterface).IsInterface)
@@ -118,8 +118,12 @@ namespace Introspect
 					for (int i = 0; i < genericParamBuilders.Length; ++i)
 					{
 						genericParamBuilders[i].SetGenericParameterAttributes(genericParams[i].GenericParameterAttributes);
-						genericParamBuilders[i].SetInterfaceConstraints(genericParams[i].GetInterfaces());
-						genericParamBuilders[i].SetBaseTypeConstraint(genericParams[i].BaseType);
+
+						var baseType = genericParams[i].GetGenericParameterConstraints().SingleOrDefault(x => x.IsClass);
+						if (baseType != null)
+							genericParamBuilders[i].SetBaseTypeConstraint(genericParams[i].BaseType);
+
+						genericParamBuilders[i].SetInterfaceConstraints(genericParams[i].GetGenericParameterConstraints().Where(x => !x.IsClass).ToArray());
 					}
 				}
 
@@ -159,7 +163,7 @@ namespace Introspect
 				ilGen.Emit(OpCodes.Callvirt, targetMethod);
 				ilGen.Emit(OpCodes.Ret);
 			}
-			
+
 			var ctor = tb.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new[] { typeof(TImpl) });
 			ILGenerator ctorILGen = ctor.GetILGenerator();
 			ctorILGen.Emit(OpCodes.Ldarg_0);

@@ -36,12 +36,12 @@ namespace Introspect.Test
 	[Static]
 	public interface ITestContainsGenericParams
 	{
-		List<T> MakeList<T>(HashSet<T> hashSet);
+		List<T> MakeList<T>(HashSet<T> hashSet) where T : InheritanceBase;
 	}
 
 	public class TestContainsGenericParams : IStatic<ITestContainsGenericParams>
 	{
-		public static List<T> MakeList<T>(HashSet<T> hashSet)
+		public static List<T> MakeList<T>(HashSet<T> hashSet) where T : InheritanceBase
 		{
 			Console.WriteLine("HashSet-Count " + hashSet.Count.ToString());
 			return new List<T>();
@@ -131,7 +131,7 @@ namespace Introspect.Test
 			TestInheritance<InheritanceSub>();
 
 			// Expected Output: HashSet-Count 0
-			StaticInterface<ITestContainsGenericParams, TestContainsGenericParams>.Impl.MakeList<int>(new HashSet<int>());
+			StaticInterface<ITestContainsGenericParams, TestContainsGenericParams>.Impl.MakeList<InheritanceSub>(new HashSet<InheritanceSub>());
 
 			const int epochs = 100;
 			const int iterations = 100000;
