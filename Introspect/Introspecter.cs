@@ -158,20 +158,9 @@ namespace Introspect
 			{
 				if (candidate.Name != interfaceMethod.Name)
 					continue;
-				if (candidate.ReturnType != interfaceMethod.ReturnType)
-				{
-					if (candidate.ReturnType.IsGenericParameter && interfaceMethod.ReturnType.IsGenericParameter)
-					{
-						if (candidate.ReturnType.GenericParameterAttributes != interfaceMethod.ReturnType.GenericParameterAttributes)
-							continue;
-						if (candidate.ReturnType.GenericParameterPosition != interfaceMethod.ReturnType.GenericParameterPosition)
-							continue;
-					}
-					else
-					{
-						continue;
-					}
-				}
+
+				if (!checkTypeEquivalency(candidate.ReturnType, interfaceMethod.ReturnType))
+					continue;
 
 				ParameterInfo[] candidateParams = candidate.GetParameters();
 				if (candidateParams.Length != methodParamTypes.Length)
@@ -180,22 +169,11 @@ namespace Introspect
 				bool compatibleTypes = true;
 				for (int i = 0; i < methodParamTypes.Length; ++i)
 				{
-					if (methodParamTypes[i] != candidateParams[i].ParameterType)
+					if (!checkTypeEquivalency(methodParamTypes[i], candidateParams[i].ParameterType))
 					{
-						if (candidateParams[i].ParameterType.IsGenericParameter && methodParamTypes[i].IsGenericParameter)
-						{
-							if (candidateParams[i].ParameterType.GenericParameterAttributes != methodParamTypes[i].GenericParameterAttributes)
-								compatibleTypes = false;
-							if (candidateParams[i].ParameterType.GenericParameterPosition != methodParamTypes[i].GenericParameterPosition)
-								compatibleTypes = false;
-						}
-						else
-						{
-							compatibleTypes = false;
-						}
-					}
-					if (!compatibleTypes)
+						compatibleTypes = false;
 						break;
+					}
 				}
 				if (!compatibleTypes)
 					continue;
@@ -217,6 +195,44 @@ namespace Introspect
 				curType = curType.BaseType;
 			}
 			throw new Exception($"Could not find a suitable method to implement the interface method {interfaceMethod.ToString()} of interface {interfaceMethod.DeclaringType.FullName}.");
+		}
+
+		private static bool checkTypeEquivalency(Type left, Type right)
+		{
+			if (left != right)
+			{
+				if (left.ContainsGenericParameters && right.ContainsGenericParameters)
+				{
+					if (left.IsGenericParameter && right.IsGenericParameter)
+					{
+						if (left.GenericParameterAttributes != right.GenericParameterAttributes)
+							return false;
+						if (left.GenericParameterPosition != right.GenericParameterPosition)
+							return false;
+					}
+					else
+					{
+						if (left.GetGenericTypeDefinition() != right.GetGenericTypeDefinition())
+							return false;
+
+						var leftArgs = left.GetGenericArguments();
+						var rightArgs = right.GetGenericArguments();
+						if (leftArgs.Length != rightArgs.Length)
+							return false;
+
+						for (int i = 0; i < leftArgs.Length; ++i)
+						{
+							if (!checkTypeEquivalency(leftArgs[i], rightArgs[i]))
+								return false;
+						}
+					}
+				}
+				else
+				{
+					return false;
+				}
+			}
+			return true;
 		}
 	}
 }
