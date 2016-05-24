@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Introspect;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -89,13 +90,11 @@ namespace Introspect.Test
 	}
 	public class MySubTC
 	{
+		private static Random rng = new Random();
+
 		public TypeCode GetTypeCode()
 		{
-			Random rng = new Random();
-			int tcVal = 0;
-			while (rng.NextDouble() < 0.9)
-				++tcVal;
-			return (TypeCode)tcVal;
+			return (TypeCode)rng.Next(0, 2);
 		}
 	}
 	public class Program
