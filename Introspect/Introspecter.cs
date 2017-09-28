@@ -113,7 +113,7 @@ namespace Introspect
 
 			foreach (MethodInfo method in typeof(TInterface).GetMethods())
 			{
-				MethodInfo targetMethod = GetImplementingMethod(method, typeof(TImpl), staticImplementation: false);
+				MethodInfo targetMethod = GetImplementingMethod(method, typeof(TImpl), staticImplementation: false, throwOnError: false);
 				if (targetMethod == null)
 				{
 					bool result = false;
@@ -135,7 +135,7 @@ namespace Introspect
 
 			foreach(MethodInfo method in typeof(TInterface).GetMethods())
 			{
-				MethodInfo targetMethod = GetImplementingMethod(method, typeof(TImpl), staticImplementation: true);
+				MethodInfo targetMethod = GetImplementingMethod(method, typeof(TImpl), staticImplementation: true, throwOnError: false);
 				if (targetMethod == null)
 					return false;
 				if (targetMethod.GetParameters().Length > byte.MaxValue)
@@ -144,7 +144,7 @@ namespace Introspect
 			return true;
 		}
 
-		internal static MethodInfo GetImplementingMethod(MethodInfo interfaceMethod, Type implementingType, bool staticImplementation)
+		internal static MethodInfo GetImplementingMethod(MethodInfo interfaceMethod, Type implementingType, bool staticImplementation, bool throwOnError)
 		{
 			Type[] methodParamTypes = interfaceMethod.GetParameters().Select(x => x.ParameterType).ToArray();
 			List<MethodInfo> targetMethods = new List<MethodInfo>();
@@ -194,7 +194,10 @@ namespace Introspect
 
 				curType = curType.BaseType;
 			}
-			throw new Exception($"Could not find a suitable method to implement the interface method {interfaceMethod.ToString()} of interface {interfaceMethod.DeclaringType.FullName}.");
+			if (throwOnError)
+				throw new Exception($"Could not find a suitable method to implement the interface method {interfaceMethod.ToString()} of interface {interfaceMethod.DeclaringType.FullName}.");
+			else
+				return null;
 		}
 
 		private static bool checkTypeEquivalency(Type left, Type right)

@@ -97,6 +97,21 @@ namespace Introspect.Test
 			return (TypeCode)rng.Next(0, 2);
 		}
 	}
+
+	public interface IDuck
+	{
+		void Quack();
+		void Flap();
+	}
+	public class NotADuck
+	{
+		public void Quack() { }
+	}
+	public class Duck
+	{
+		public void Quack() { }
+		public void Flap() { }
+	}
 	public class Program
 	{
 		public int x;
@@ -122,6 +137,12 @@ namespace Introspect.Test
 
 		public static void Main(string[] args)
 		{
+			// Expected Output:
+			// Duck is a duck of IDuck
+			// NotADuck is not a duck of IDuck
+			Console.WriteLine($"Duck is {(Introspecter.IsDuck<IDuck, Duck>(new Duck()) ? "" : "not")} a duck of IDuck");
+			Console.WriteLine($"NotADuck is {(Introspecter.IsDuck<IDuck, NotADuck>(new NotADuck()) ? "" : "not")} a duck of IDuck");
+
 			// Expected Output:
 			// InheritanceBase.M was called
 			// InheritanceBase.N was called

@@ -15,4 +15,7 @@
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Introspect.Analyzer" Path="|Introspect.Analyzer|" />
     <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="Project" d:ProjectName="Introspect.Analyzer" Path="|Introspect.Analyzer|" />
   </Assets>
+  <Prerequisites>
+    <Prerequisite Id="Microsoft.Net.Component.4.5.TargetingPack" Version="[15.0.26621.2,16.0)" DisplayName=".NET Framework 4.5 targeting pack" />
+  </Prerequisites>
 </PackageManifest>

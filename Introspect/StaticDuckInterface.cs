@@ -50,7 +50,7 @@ namespace Introspect
 			foreach (MethodInfo method in typeof(TInterface).GetMethods())
 			{
 				Type[] methodParamTypes = method.GetParameters().Select(x => x.ParameterType).ToArray();
-				MethodInfo targetMethod = Introspecter.GetImplementingMethod(method, typeof(TImpl), staticImplementation: true);
+				MethodInfo targetMethod = Introspecter.GetImplementingMethod(method, typeof(TImpl), staticImplementation: true, throwOnError: true);
 				if (targetMethod == null)
 					throw new Exception($"Could not find required public static method \"{method.Name}({string.Join(", ", methodParamTypes.Select(x => x.FullName).ToArray())})\" on implementation type \"{typeof(TImpl).FullName}\" of interface \"{typeof(TInterface).FullName}\"");
 
