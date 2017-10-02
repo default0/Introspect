@@ -43,7 +43,7 @@ namespace Introspect
 				.GetMethod(nameof(DuckInterface<TInterface, TImpl>.Duck), BindingFlags.Public | BindingFlags.Static);
 
 
-			DynamicMethod method = new DynamicMethod(Guid.NewGuid().ToString("N"), typeof(TInterface), new[] { typeof(object) });
+			DynamicMethod method = new DynamicMethod(Guid.NewGuid().ToString("N"), typeof(TInterface), new[] { typeof(object) }, true);
 			var ilGen = method.GetILGenerator();
 			ilGen.Emit(OpCodes.Ldarg_0);
 			if (impl.GetType().IsValueType)
