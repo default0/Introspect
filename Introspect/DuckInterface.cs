@@ -46,7 +46,10 @@ namespace Introspect
 			DynamicMethod method = new DynamicMethod(Guid.NewGuid().ToString("N"), typeof(TInterface), new[] { typeof(object) });
 			var ilGen = method.GetILGenerator();
 			ilGen.Emit(OpCodes.Ldarg_0);
-			ilGen.Emit(OpCodes.Castclass, impl.GetType());
+			if (impl.GetType().IsValueType)
+				ilGen.Emit(OpCodes.Unbox_Any, impl.GetType());
+			else
+				ilGen.Emit(OpCodes.Castclass, impl.GetType());
 			ilGen.Emit(OpCodes.Call, makeDuckMethod);
 			ilGen.Emit(OpCodes.Ret);
 
@@ -129,7 +132,10 @@ namespace Introspect
 
 				ILGenerator ilGen = methodBuilder.GetILGenerator();
 				ilGen.Emit(OpCodes.Ldarg_0);
-				ilGen.Emit(OpCodes.Ldflda, field);
+				if (typeof(TImpl).IsValueType)
+					ilGen.Emit(OpCodes.Ldflda, field);
+				else
+					ilGen.Emit(OpCodes.Ldfld, field);
 				switch (methodParamTypes.Length)
 				{
 					case 0:
@@ -160,7 +166,11 @@ namespace Introspect
 				}
 				if (targetMethod.IsGenericMethodDefinition)
 					targetMethod.MakeGenericMethod(genericParamBuilders);
-				ilGen.Emit(OpCodes.Callvirt, targetMethod);
+				if(typeof(TImpl).IsValueType)
+					ilGen.Emit(OpCodes.Call, targetMethod);
+				else
+					ilGen.Emit(OpCodes.Callvirt, targetMethod);
+
 				ilGen.Emit(OpCodes.Ret);
 			}
 

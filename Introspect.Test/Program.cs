@@ -9,6 +9,21 @@ using System.Threading.Tasks;
 
 namespace Introspect.Test
 {
+	class DuckOfStruct : IDuck
+	{
+		private StructDuck duck;
+
+		public void Flap()
+		{
+			duck.Flap();
+		}
+
+		public void Quack()
+		{
+			duck.Quack();
+		}
+	}
+
 	[Static]
 	public interface IFoo
 	{
@@ -103,14 +118,19 @@ namespace Introspect.Test
 		void Quack();
 		void Flap();
 	}
+	public struct StructDuck
+	{
+		public void Quack() => Console.WriteLine("Struct Quack");
+		public void Flap() => Console.WriteLine("Struct Flap");
+	}
 	public class NotADuck
 	{
 		public void Quack() { }
 	}
 	public class Duck
 	{
-		public void Quack() { }
-		public void Flap() { }
+		public void Quack() => Console.WriteLine("Class Quack");
+		public void Flap() => Console.WriteLine("Class Flap");
 	}
 	public class Program
 	{
@@ -142,6 +162,16 @@ namespace Introspect.Test
 			// NotADuck is not a duck of IDuck
 			Console.WriteLine($"Duck is {(Introspecter.IsDuck<IDuck, Duck>(new Duck()) ? "" : "not")} a duck of IDuck");
 			Console.WriteLine($"NotADuck is {(Introspecter.IsDuck<IDuck, NotADuck>(new NotADuck()) ? "" : "not")} a duck of IDuck");
+
+
+
+			var structDuck = DuckInterface<IDuck>.Duck(new StructDuck());
+			var classDuck = DuckInterface<IDuck>.Duck(new Duck());
+
+			structDuck.Quack();
+			structDuck.Flap();
+			classDuck.Quack();
+			classDuck.Flap();
 
 			// Expected Output:
 			// InheritanceBase.M was called
