@@ -67,7 +67,7 @@ namespace Introspect
 		private static class Vars
 		{
 			public static AssemblyBuilder AssemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(
-				new AssemblyName("StaticIntefaces"),
+				new AssemblyName("StaticInterfaces"),
 				AssemblyBuilderAccess.Run
 			);
 			public static ModuleBuilder ModuleBuilder = AssemblyBuilder.DefineDynamicModule("MainModule");
