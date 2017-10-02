@@ -96,7 +96,7 @@ namespace Introspect
 				new[] { typeof(TInterface) }
 			);
 			var field = tb.DefineField("_impl", typeof(TImpl), FieldAttributes.Private);
-			foreach (MethodInfo method in typeof(TInterface).GetMethods())
+			foreach (MethodInfo method in typeof(TInterface).GetMethods().Concat(typeof(TInterface).GetInterfaces().SelectMany(i => i.GetMethods())))
 			{
 				Type[] methodParamTypes = method.GetParameters().Select(x => x.ParameterType).ToArray();
 				MethodInfo targetMethod = Introspecter.GetImplementingMethod(method, typeof(TImpl), staticImplementation: false, throwOnError: true);
